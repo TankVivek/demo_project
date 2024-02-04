@@ -1,26 +1,18 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const https = require("https"); // Corrected: Changed 'http' to 'https'
+const fs = require("fs");
 
 const app = express();
-
-var corsOptions = {
-  origin: "http://localhost:8081"
-};
-
-app.use(cors(corsOptions));
-
 mongoose.set('strictQuery', true);
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
 
 const db = require("./app/models");
+
 db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  .connect(db.url, {})
   .then(() => {
     console.log("Connected to the database!");
   })
@@ -30,12 +22,14 @@ db.mongoose
   });
 
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.send("Welcome to the application."); // Corrected: Changed 'res.render' to 'res.send'
 });
 
-require("./app/routes/turorial.routes")(app);
+const options = {
+  key: fs.readFileSync("certificate/key.pem"),
+  cert: fs.readFileSync("certificate/cert.pem"),
+};
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+https.createServer(options, app).listen(3000, () => {
+  console.log("Server connected on port 3000");
 });
